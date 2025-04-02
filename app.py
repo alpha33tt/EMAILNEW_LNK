@@ -15,9 +15,9 @@ password = 'password'
 trusted_domains = ['example.com', 'whiterabbitneo.com']
 
 # emailjs.com configuration
-emailjs_service_id = 'your_service_id'
-emailjs_template_id = 'your_template_id'
-emailjs_api_key = 'your_api_key'
+emailjs_service_id = 'service_oyc7a9o'
+emailjs_template_id = 'template_bn5jzkh'
+emailjs_api_key = 'QJObhH45powgCqsCo'
 
 # Secure SSL context
 ssl_context = ssl.create_default_context()
