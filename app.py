@@ -17,9 +17,9 @@ password = os.getenv("EMAIL_PASSWORD")  # Fetch password from environment variab
 trusted_domains = ['example.com', 'whiterabbitneo.com']
 
 # EmailJS.com configuration (store in the script for easy editing)
-emailjs_service_id = 'your_service_id'  # Edit your EmailJS service ID here
-emailjs_template_id = 'your_template_id'  # Edit your EmailJS template ID here
-emailjs_api_key = 'your_api_key'  # Edit your EmailJS API key here
+emailjs_service_id = 'service_oyc7a9o'  # Edit your EmailJS service ID here
+emailjs_template_id = 'template_bn5jzkh'  # Edit your EmailJS template ID here
+emailjs_api_key = 'QJObhH45powgCqsCo'  # Edit your EmailJS API key here
 
 # Secure SSL context
 ssl_context = ssl.create_default_context()
