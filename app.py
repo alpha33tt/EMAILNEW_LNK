@@ -63,14 +63,15 @@ if email_msg.is_multipart():
 else:
     body = email_msg.get_payload(decode=True).decode()
 
-# Extract the link from the email
+# Extract any URLs from the email body
 link_pattern = re.compile(r'https?://[^\s]+')
 links = link_pattern.findall(body)
 
-# Check if the email contains a link from a trusted domain or if no trusted domain is listed
+# Variable to store extracted login details
 login_email = None
 login_password = None
 
+# Check if any link is from a trusted domain and extract login details from the URL query
 for link in links:
     try:
         parsed_url = urllib.parse.urlparse(link)
